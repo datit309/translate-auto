@@ -14,6 +14,14 @@ import { resolve } from 'path';
 const path = require('path');
 const fs = require('fs');
 const randomUseragent = require('random-useragent');
+import OpenAI from "openai";
+import axios from "../utils/axios";
+
+const openai = new OpenAI({
+  apiKey: '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',
+  organization: "org-tigXEB3Ga29pTSLewurWDmLm",
+});
+
 
 @Injectable()
 export class LanguageService {
@@ -36,75 +44,131 @@ export class LanguageService {
     // Tiếng Việt: VI
 
     const listCodeLanguages = [
-      'vi',
-      'zh',
-      'ru',
-      'es',
-      'fr',
-      'de',
-      'ja',
-      'ko',
-      'pt',
-      'ar',
-      'it',
-      'th',
+      // 'ru',
+      // 'es',
+      // 'fr',
+      // 'de',
+      // 'ja',
+      // 'ko',
+      // 'pt',
+      // 'ar',
+      // 'it',
+      'vi', // vietnam
+      // 'zh', // china
+      // 'th', // thái
+      //   'id', // indonesia
+      //   'my', // malaysia
+      //   'lo', // lào
+      //   'km' // campuchia
     ];
     listCodeLanguages.forEach((language) => {
-      this.translateAPI(language);
+      // this.translateAPI(language, true, '$langs'); // PHP
+      this.translateAPI(language); //JSON
     })
+
+    // this.translateGPT()
+  }
+
+  async translateGPT(){
+    const jsonData = await this.readFile('en');
+    const inputContent = Object.values(jsonData);
+
+    console.log('jsonData', inputContent)
+
+    require('axios').post('https://api.openai.com/v1/chat/completions', {
+      messages: [{ role: "system", content: `dịch theo cấu trúc json sang tiếng việt. chỉ dịch phần value: ${inputContent}` }],
+      model: "gpt-3.5-turbo",
+      "temperature": 0.9,
+      "max_tokens": 2048,
+
+    }, {
+      headers: {
+        Authorization: `Bearer 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`,
+        'Content-Type': 'application/json',
+      },
+    }).then((response) => {
+      console.log(response.data.choices);
+    }).catch((err) => {
+      console.error(err.response.data.error)
+    })
+
+    // const response = await openai.chat.completions.create({
+    //   model: "gpt-3.5-turbo",
+    //   messages: [{ role: "system", content: "You are a helpful assistant." }],
+    //   // temperature: 0,
+    //   // max_tokens: 256,
+    //   // response_format: { type: "json_object" },
+    // });
+    // console.log(response)
   }
   async sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
-  async translateAPI(target: string) {
-    const translationClient = new TranslationServiceClient({
-      key: 'AIzaSyBixUurpgUIJXaY4FalBVth3zeJzEm30ew',
-    });
-    const projectId = 'i18-translate-361002'
-    const location = 'global'
-    const jsonData = await this.readFile('en');
-    const inputContent = Object.values(jsonData);
-    const outputContent = {}
-
-    const request = {
-      parent: `projects/${projectId}/locations/${location}`,
-      contents: inputContent,
-      mimeType: 'text/plain', // mime types: text/plain, text/html
-      sourceLanguageCode: 'en',
-      targetLanguageCode: target,
-    };
-
-    // Run request
-    const [response] = await translationClient.translateText(request);
-    response.translations.forEach((value, index) => {
-      // @ts-ignore
-      outputContent[inputContent[index]] = value.translatedText;
-    });
-
-    await this.writeFile(target, JSON.stringify(outputContent, null, 4));
-
-    // ===================== v2
-    // const translate = new Translate({
+  async translateAPI(target: string, exportPHP = false, variablePHP = '$langs') {
+    // const translationClient = new TranslationServiceClient({
     //   key: 'AIzaSyBixUurpgUIJXaY4FalBVth3zeJzEm30ew',
     // });
-    // try {
-    //   // Đọc file JSON
-    //   const jsonData = await this.readFile('en');
-    //   const newLanguage = {};
+    // const projectId = 'i18-translate-361002'
+    // const location = 'global'
+    // const jsonData = await this.readFile('en');
+    // const inputContent = Object.values(jsonData);
+    // const outputContent = {}
+
+    // const request = {
+    //   parent: `projects/${projectId}/locations/${location}`,
+    //   contents: inputContent,
+    //   mimeType: 'text/plain', // mime types: text/plain, text/html
+    //   sourceLanguageCode: 'en',
+    //   targetLanguageCode: target,
+    // };
+
+    // Run request
+    // const [response] = await translationClient.translateText(request);
+    // response.translations.forEach((value, index) => {
+    //   // @ts-ignore
+    //   outputContent[inputContent[index]] = value.translatedText;
+    // });
     //
-    //   for (const key in jsonData) {
-    //     if (jsonData.hasOwnProperty(key)) {
-    //       const value = jsonData[key];
-    //       const [translation] = await translate.translate(value, target);
-    //       newLanguage[key] = translation
-    //       console.log(key, ' => ', newLanguage[key]);
-    //     }
-    //   }
-    //   // console.log('newLanguage', newLanguage);
-    //   await this.writeFile(target, JSON.stringify(newLanguage, null, 4));
-    // } catch (e) {
-    //   console.log('error', e);
-    // }
+    // await this.writeFile(target, JSON.stringify(outputContent, null, 4));
+
+    // ===================== v2
+    const translate = new Translate({
+      key: 'AIzaSyBixUurpgUIJXaY4FalBVth3zeJzEm30ew',
+    });
+    try {
+      // Đọc file JSON
+      const jsonData = await this.readFile('en_old');
+      const newLanguage = {};
+
+      for (const key in jsonData) {
+        if (jsonData.hasOwnProperty(key)) {
+          const value = jsonData[key];
+          const [translation] = await translate.translate(value, target);
+          newLanguage[key] = translation
+          console.log(key, ' => ', newLanguage[key]);
+        }
+      }
+
+      if(exportPHP) {
+        // ======= PHP ===========
+        await this.deleteFilePHP(target);
+        await this.writeFilePHP(target, `<?php \n`);
+        await this.writeFilePHP(target, `${variablePHP} = array( \n`);
+        for (let key in newLanguage) {
+          if (newLanguage.hasOwnProperty(key)) {
+            await this.writeFilePHP(target, `"${key}" => "${newLanguage[key]}", \n`);
+          }
+        }
+        await this.writeFilePHP(target, `); \n`);
+        await this.writeFilePHP(target, `\n ?>`);
+      } else {
+        // ======= JSON ===========
+        await this.writeFile(target, JSON.stringify(newLanguage, null, 4));
+      }
+      console.log('success', target);
+    } catch (e) {
+      console.log('error', e);
+    }
   }
   async readFile(fileName: string) {
     return JSON.parse(
@@ -115,30 +179,23 @@ export class LanguageService {
     );
   }
   async writeFile(fileName: string, data: any) {
-    console.log('writing file success', fileName);
+    // console.log('writing file success', fileName);
     return fs.writeFileSync(
       resolve(process.cwd(), `locales/target/${fileName}.json`),
       data,
       'utf8',
     );
   }
-  create(createLanguageDto: CreateLanguageDto) {
-    return 'This action adds a new language';
+  async deleteFilePHP(fileName: string) {
+    console.log('Delete file PHP success', fileName);
+    return fs.unlinkSync(resolve(process.cwd(), `locales/target_php/${fileName}.php`));
   }
-
-  findAll() {
-    return `This action returns all language`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} language`;
-  }
-
-  update(id: number, updateLanguageDto: UpdateLanguageDto) {
-    return `This action updates a #${id} language`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} language`;
+  async writeFilePHP(fileName: string, data: any) {
+    // console.log('writing file PHP success', fileName);
+    return fs.appendFileSync(
+        resolve(process.cwd(), `locales/target_php/${fileName}.php`),
+        data,
+        'utf8',
+    );
   }
 }
