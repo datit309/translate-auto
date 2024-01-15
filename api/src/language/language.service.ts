@@ -1,21 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { CreateLanguageDto } from './dto/create-language.dto';
-import { UpdateLanguageDto } from './dto/update-language.dto';
 const { Translate } = require('@google-cloud/translate').v2;
-const {TranslationServiceClient} = require('@google-cloud/translate');
-const {Storage} = require('@google-cloud/storage');
-import { translate } from '@vitalets/google-translate-api';
-import { HttpProxyAgent } from 'http-proxy-agent';
-import { HttpsProxyAgent } from 'https-proxy-agent';
-
-import puppeteer from 'puppeteer';
-import * as _ from 'lodash';
 import { resolve } from 'path';
-const path = require('path');
 const fs = require('fs');
-const randomUseragent = require('random-useragent');
 import OpenAI from "openai";
-import axios from "../utils/axios";
 
 const openai = new OpenAI({
   apiKey: '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',
@@ -26,47 +13,29 @@ const openai = new OpenAI({
 @Injectable()
 export class LanguageService {
   constructor() {
-    // Tiếng Anh: EN
-    // Tây Ban Nha: ES
-    // Tiếng Trung: ZH
-    // Tiếng Pháp: FR
-    // Tiếng Đức: DE
-    // Tiếng Nhật: JA
-    // Tiếng Hàn: KO
-    // Tiếng Nga: RU
-    // Tiếng Bồ Đào Nha: PT
-    // Tiếng Ả Rập: AR
-    // Tiếng Ý: IT
-    // Tiếng Hà Lan: NL
-    // Tiếng Thái: TH
-    // Tiếng Thổ Nhĩ Kỳ: TR
-    // Tiếng Ba Lan: PL
-    // Tiếng Việt: VI
-
-    const listCodeLanguages = [
-      // 'ru',
-      // 'es',
-      // 'fr',
-      // 'de',
-      // 'ja',
-      // 'ko',
-      // 'pt',
-      // 'ar',
-      // 'it',
-      'vi', // vietnam
+    const targetFilePHP = false; // true: PHP, false: JSON
+    const variableArrayPHP = '$langs'; // Biến hứng dữ liệu khi dịch sang PHP
+    const listCodeLanguages = [ // Danh sách ngôn ngữ cần dịch
+      // 'ru', // Nga
+      // 'es', // Tay Ban Nha
+      // 'fr', // Phap
+      // 'de', // Duc
+      // 'ja', // Nhat
+      // 'ko', // Han
+      // 'pt', // Bo Dao Nha
+      // 'ar', // a rap
+      // 'it', // italy
+      'vi', // viet nam
       // 'zh', // china
       // 'th', // thái
-      //   'id', // indonesia
-      //   'my', // malaysia
-      //   'lo', // lào
-      //   'km' // campuchia
+      // 'id', // indonesia
+      // 'my', // malaysia
+      // 'lo', // lào
+      // 'km' // campuchia
     ];
     listCodeLanguages.forEach((language) => {
-      // this.translateAPI(language, true, '$langs'); // PHP
-      this.translateAPI(language); //JSON
+      this.translateAPI('en',language, targetFilePHP, variableArrayPHP); //JSON
     })
-
-    // this.translateGPT()
   }
 
   async translateGPT(){
@@ -104,40 +73,14 @@ export class LanguageService {
   async sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
-  async translateAPI(target: string, exportPHP = false, variablePHP = '$langs') {
-    // const translationClient = new TranslationServiceClient({
-    //   key: 'AIzaSyBixUurpgUIJXaY4FalBVth3zeJzEm30ew',
-    // });
-    // const projectId = 'i18-translate-361002'
-    // const location = 'global'
-    // const jsonData = await this.readFile('en');
-    // const inputContent = Object.values(jsonData);
-    // const outputContent = {}
-
-    // const request = {
-    //   parent: `projects/${projectId}/locations/${location}`,
-    //   contents: inputContent,
-    //   mimeType: 'text/plain', // mime types: text/plain, text/html
-    //   sourceLanguageCode: 'en',
-    //   targetLanguageCode: target,
-    // };
-
-    // Run request
-    // const [response] = await translationClient.translateText(request);
-    // response.translations.forEach((value, index) => {
-    //   // @ts-ignore
-    //   outputContent[inputContent[index]] = value.translatedText;
-    // });
-    //
-    // await this.writeFile(target, JSON.stringify(outputContent, null, 4));
-
+  async translateAPI(source = 'en', target: string, exportPHP = false, variablePHP = '$langs') {
     // ===================== v2
     const translate = new Translate({
-      key: 'AIzaSyBixUurpgUIJXaY4FalBVth3zeJzEm30ew',
+      key: process.env.GGC_KEY_TRANSLATE,
     });
     try {
       // Đọc file JSON
-      const jsonData = await this.readFile('en_old');
+      const jsonData = await this.readFile(source);
       const newLanguage = {};
 
       for (const key in jsonData) {
