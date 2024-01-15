@@ -6,7 +6,7 @@ const fs = require('fs');
 @Injectable()
 export class LanguageService {
   constructor() {
-    const targetFilePHP = false; // true: PHP, false: JSON
+    const targetFilePHP = true; // true: PHP, false: JSON
     const variableArrayPHP = '$langs'; // Biến hứng dữ liệu khi dịch sang PHP
     const listCodeLanguages = [ // Danh sách ngôn ngữ cần dịch
       // 'ru', // Nga
@@ -90,8 +90,19 @@ export class LanguageService {
     );
   }
   async deleteFilePHP(fileName: string) {
-    console.log('Delete file PHP success', fileName);
-    return fs.unlinkSync(resolve(process.cwd(), `locales/target_php/${fileName}.php`));
+    // return fs.unlink(resolve(process.cwd(), `locales/target_php/${fileName}.php`), (err) => {
+    //   if (err) {
+    //     console.error(err);
+    //     return;
+    //   }
+    //   console.log('Delete file PHP success', fileName);
+    //   //file removed
+    // });
+    return fs.writeFileSync(
+        resolve(process.cwd(), `locales/target_php/${fileName}.json`),
+        '',
+        'utf8',
+    );
   }
   async writeFilePHP(fileName: string, data: any) {
     // console.log('writing file PHP success', fileName);
