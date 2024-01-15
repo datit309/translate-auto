@@ -4,13 +4,13 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { getConnectionStringMongo } from './utils/mongo';
-import {ScheduleModule} from "@nestjs/schedule";
-import {ThrottlerGuard, ThrottlerModule} from "@nestjs/throttler";
-import {join} from "path";
-import {APP_FILTER, APP_GUARD} from "@nestjs/core";
-import * as process from "process";
-import {ServeStaticModule} from '@nestjs/serve-static';
-import {AllExceptionsFilter} from "./exceptions/all-exceptions.filter";
+import { ScheduleModule } from '@nestjs/schedule';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { join } from 'path';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
+import * as process from 'process';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { AllExceptionsFilter } from './exceptions/all-exceptions.filter';
 import { LanguageModule } from './language/language.module';
 
 @Module({
@@ -32,26 +32,27 @@ import { LanguageModule } from './language/language.module';
         '.env.production',
       ],
     }),
-    MongooseModule.forRoot(getConnectionStringMongo(),{
+    MongooseModule.forRoot(getConnectionStringMongo(), {
       connectionFactory: (connection) => {
         // autoIncrement.initialize(connection);
         // connection.plugin(require('mongoose-autopopulate'));
         return connection;
       },
-      autoIndex: true
+      autoIndex: true,
     }),
     ScheduleModule.forRoot(),
     LanguageModule,
   ],
   controllers: [AppController],
-  providers: [AppService,
+  providers: [
+    AppService,
     {
       provide: APP_FILTER,
       useClass: AllExceptionsFilter,
     },
     {
       provide: APP_GUARD,
-      useClass: ThrottlerGuard
+      useClass: ThrottlerGuard,
     },
   ],
 })
