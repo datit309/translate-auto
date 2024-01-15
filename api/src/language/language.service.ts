@@ -2,13 +2,6 @@ import { Injectable } from '@nestjs/common';
 const { Translate } = require('@google-cloud/translate').v2;
 import { resolve } from 'path';
 const fs = require('fs');
-import OpenAI from "openai";
-
-const openai = new OpenAI({
-  apiKey: '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',
-  organization: "org-tigXEB3Ga29pTSLewurWDmLm",
-});
-
 
 @Injectable()
 export class LanguageService {
@@ -36,39 +29,6 @@ export class LanguageService {
     listCodeLanguages.forEach((language) => {
       this.translateAPI('en',language, targetFilePHP, variableArrayPHP); //JSON
     })
-  }
-
-  async translateGPT(){
-    const jsonData = await this.readFile('en');
-    const inputContent = Object.values(jsonData);
-
-    console.log('jsonData', inputContent)
-
-    require('axios').post('https://api.openai.com/v1/chat/completions', {
-      messages: [{ role: "system", content: `dịch theo cấu trúc json sang tiếng việt. chỉ dịch phần value: ${inputContent}` }],
-      model: "gpt-3.5-turbo",
-      "temperature": 0.9,
-      "max_tokens": 2048,
-
-    }, {
-      headers: {
-        Authorization: `Bearer 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`,
-        'Content-Type': 'application/json',
-      },
-    }).then((response) => {
-      console.log(response.data.choices);
-    }).catch((err) => {
-      console.error(err.response.data.error)
-    })
-
-    // const response = await openai.chat.completions.create({
-    //   model: "gpt-3.5-turbo",
-    //   messages: [{ role: "system", content: "You are a helpful assistant." }],
-    //   // temperature: 0,
-    //   // max_tokens: 256,
-    //   // response_format: { type: "json_object" },
-    // });
-    // console.log(response)
   }
   async sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));

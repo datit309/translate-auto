@@ -110,8 +110,8 @@ async function bootstrap() {
         };
         //Swagger
         const config = new DocumentBuilder()
-            .setTitle('API SmartCard')
-            .setDescription('API SmartCard')
+            .setTitle('API')
+            .setDescription('API')
             .setVersion('1.0')
             .addBearerAuth(undefined, 'defaultBearerAuth')
             .build();
