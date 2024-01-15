@@ -9,4 +9,4 @@
   7. Source Language ~> [api/locales/source/en.json]()
   8. Target Language ~> [api/locales/target/**]() || PHP Language -> [api/locales/target_php/**]()
   9. Setup to ~> [api/src/language/language.service.ts]()
-  7. Run yarn && yarn dev
+  10. Run yarn && yarn dev
