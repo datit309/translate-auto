@@ -6,7 +6,7 @@
   4. [Set up authentication with a service account](https://cloud.google.com/docs/authentication/getting-started) so you can access the API from your local workstation.
   5. [Get API key for your project](https://console.cloud.google.com/apis/credentials)
   6. Set API key to 'GGC_KEY_TRANSLATE' from .env.development 
-  7. Source Language ~> [api/locales/source/en.json]()
-  8. Target Language ~> [api/locales/target/**]() || PHP Language -> [api/locales/target_php/**]()
-  9. Setup to ~> [api/src/language/language.service.ts]()
+  7. Source Language ~> [locales/source/en.json]()
+  8. Target Language ~> [locales/target/**]() || PHP Language -> [locales/target_php/**]()
+  9. Setup to ~> [src/language/language.service.ts]()
   10. Run "yarn && yarn dev"
